@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const { Client, GatewayIntentBits } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
 const express = require('express');
 
 const client = new Client({
@@ -19,7 +19,11 @@ client.on('messageCreate', (message) => {
   if (message.webhookId) {
     setTimeout(() => {
       message.delete().catch(console.error);
-      message.channel.send('yahaha kehapus dan maaf menganggu kenyaman nya, mwah.').then(sentMessage => {
+      const embed = new EmbedBuilder()
+        .setDescription('yahaha kehapus dan maaf menganggu kenyaman nya, mwah.')
+        .setColor(0x40E0D0)
+        .setImage('https://tenor.com/view/kiss-blow-kiss-love-you-love-you-lots-kisses-gif-2119490846757697886');
+      message.channel.send({ embeds: [embed] }).then(sentMessage => {
         setTimeout(() => {
           sentMessage.delete().catch(console.error);
         }, 3000);
