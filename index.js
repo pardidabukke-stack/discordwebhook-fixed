@@ -1,6 +1,12 @@
 require('dotenv').config();
 
-const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
+const { 
+  Client, 
+  GatewayIntentBits, 
+  EmbedBuilder,
+  Events 
+} = require('discord.js');
+
 const express = require('express');
 
 const client = new Client({
@@ -11,16 +17,20 @@ const client = new Client({
   ],
 });
 
-client.once('ready', () => {
-  console.log(`Logged in as ${client.user.tag}!`);
+client.once(Events.ClientReady, (client) => {
+  console.log(`🤖 Logged in as ${client.user.tag}`);
 });
 
-client.on('messageCreate', async (message) => {
-  // HANYA PROSES PESAN WEBHOOK
+client.on(Events.MessageCreate, async (message) => {
+  // ⛔ hanya proses pesan webhook
   if (!message.webhookId) return;
 
+  let secretReply = null;
+
   try {
-    // 🔹 1. HAPUS WEBHOOK LAMA DI CHANNEL (KECUALI YANG BARU MASUK)
+    /**
+     * 🧹 HAPUS WEBHOOK LAMA (SAAT WEBHOOK BARU MASUK)
+     */
     const messages = await message.channel.messages.fetch({ limit: 50 });
 
     const oldWebhooks = messages.filter(
@@ -33,42 +43,82 @@ client.on('messageCreate', async (message) => {
       await msg.delete().catch(() => {});
     }
 
-    // 🔹 2. AUTO DELETE WEBHOOK BARU SETELAH 20 DETIK
+    /**
+     * 🔐 DETEKSI KATA "SECRET"
+     * - dari content
+     * - dari embed description
+     */
+    const hasSecret =
+      message.content?.toLowerCase().includes('secret') ||
+      message.embeds.some(e =>
+        e.description?.toLowerCase().includes('secret')
+      );
+
+    /**
+     * 🎉 UCAPAN SECRET (0.5 DETIK SETELAH WEBHOOK)
+     */
+    if (hasSecret) {
+      setTimeout(async () => {
+        try {
+          secretReply = await message.channel.send({
+            content: 'GACORRR BANGETT😜☝️',
+          });
+        } catch {}
+      }, 500);
+    }
+
+    /**
+     * ⏱️ AUTO DELETE WEBHOOK + UCAPAN + EMBED GIF
+     */
     setTimeout(async () => {
-      await message.delete().catch(() => {});
+      try {
+        // hapus webhook utama
+        await message.delete().catch(() => {});
 
-      const embed = new EmbedBuilder()
-        .setDescription(
-          'yahaha kehapus dan maaf mengganggu kenyamanannya, mwah 🤍'
-        )
-        .setColor(0x40E0D0)
-        .setImage(
-          'https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExaWF3MXpuMnc3cXZya3R2MXhxeGJvM3VsaTB5NWpoc2dsNWJqdjY1eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/ytu2GUYbvhz7zShGwS/giphy.gif'
-        );
+        // hapus ucapan secret jika ada
+        if (secretReply) {
+          await secretReply.delete().catch(() => {});
+        }
 
-      const sentMessage = await message.channel.send({ embeds: [embed] });
+        // embed notifikasi (GIF TETAP ADA)
+        const embed = new EmbedBuilder()
+          .setDescription(
+            'yahaha kehapus dan maaf mengganggu kenyamanannya, mwah 🤍'
+          )
+          .setColor(0x40E0D0)
+          .setImage(
+            'https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExaWF3MXpuMnc3cXZya3R2MXhxeGJvM3VsaTB5NWpoc2dsNWJqdjY1eCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/ytu2GUYbvhz7zShGwS/giphy.gif'
+          );
 
-      // 🔹 3. HAPUS EMBED NOTIFIKASI SETELAH 5 DETIK
-      setTimeout(() => {
-        sentMessage.delete().catch(() => {});
-      }, 5000);
-    }, 20000); // 20 detik
+        const notif = await message.channel.send({ embeds: [embed] });
+
+        // hapus embed gif setelah 5 detik
+        setTimeout(() => {
+          notif.delete().catch(() => {});
+        }, 5000);
+
+      } catch (err) {
+        console.error('Delete error:', err);
+      }
+    }, 20000);
 
   } catch (err) {
-    console.error(err);
+    console.error('Webhook handler error:', err);
   }
 });
 
 client.login(process.env.DISCORD_TOKEN);
 
-// 🌐 KEEP ALIVE (RENDER)
+/**
+ * 🌐 KEEP ALIVE (RENDER / RAILWAY)
+ */
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
+app.get('/', (_, res) => {
   res.send('Bot is running!');
 });
 
 app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+  console.log(`🌍 Server listening on port ${port}`);
 });
