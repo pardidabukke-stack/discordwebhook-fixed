@@ -22,9 +22,9 @@ client.on('messageCreate', (message) => {
       message.channel.send('yahaha kehapus dan maaf menganggu kenyaman nya, mwah.').then(sentMessage => {
         setTimeout(() => {
           sentMessage.delete().catch(console.error);
-        }, 3000);
+        }, 7000);
       }).catch(console.error);
-    }, 10000); // 10 seconds
+    }, 60000); // 60 seconds
   }
 });
 
@@ -41,3 +41,4 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
+
