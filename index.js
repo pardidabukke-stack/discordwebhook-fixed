@@ -26,9 +26,9 @@ client.on('messageCreate', (message) => {
       message.channel.send({ embeds: [embed] }).then(sentMessage => {
         setTimeout(() => {
           sentMessage.delete().catch(console.error);
-        }, 7000);
+        }, 5000);
       }).catch(console.error);
-    }, 60000);  // 60 seconds
+    }, 20000);  // 60 seconds
   }
 });
 
@@ -45,3 +45,4 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
+
