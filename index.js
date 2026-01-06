@@ -90,7 +90,7 @@ async function handleWebhook(message, isOld = false) {
 
     setTimeout(() => {
       replyMessage?.delete().catch(() => {});
-    }, 5000);
+    }, 30000);
   }
 
   /* ================= HAPUS WEBHOOK ================= */
