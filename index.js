@@ -4,14 +4,21 @@ const { Client, GatewayIntentBits, EmbedBuilder, Events } = require('discord.js'
 const express = require('express');
 const { Axiom } = require('@axiomhq/js');
 
-/* ================= AXIOM LOGGER ================= */
-const axiom = new Axiom({
-  token: process.env.AXIOM_TOKEN,
-  orgId: process.env.AXIOM_ORG_ID,
-});
+/* ================= AXIOM LOGGER (OPSIONAL) ================= */
+const axiom =
+  process.env.AXIOM_TOKEN &&
+  process.env.AXIOM_ORG_ID &&
+  process.env.AXIOM_DATASET
+    ? new Axiom({
+        token: process.env.AXIOM_TOKEN,
+        orgId: process.env.AXIOM_ORG_ID,
+      })
+    : null;
 
 async function log(level, message, meta = {}) {
   console.log(`[${level.toUpperCase()}] ${message}`);
+
+  if (!axiom) return;
 
   try {
     await axiom.ingest(process.env.AXIOM_DATASET, [
@@ -116,7 +123,7 @@ async function handleWebhook(message, isOld = false) {
 
       setTimeout(() => {
         giftMessage?.delete().catch(() => {});
-      }, 4500);  
+      }, 4500);
     } catch (err) {
       log('error', 'Delete webhook failed', {
         error: err.message,
